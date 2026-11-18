@@ -85,9 +85,9 @@ class PolicyKnowledgeEngine:
         if not self.chunks:
             self._build_fallback_chunks()
 
-        # Ingest 20 Company Policies & 10 Safety Handbooks (Markdown and PDF documents)
+        # Ingest Company Policies exclusively for RAG (Safety Handbooks excluded from backend)
         from pathlib import Path
-        for sub_dir in ["company_policies", "safety_handbooks"]:
+        for sub_dir in ["company_policies"]:
             p_dir = Path("data/policies") / sub_dir
             if p_dir.exists():
                 for md_file in p_dir.glob("*.md"):
@@ -104,15 +104,15 @@ class PolicyKnowledgeEngine:
                                 source_file=f"{md_file.stem}.pdf",
                                 page=1,
                                 clause=clause_label,
-                                section=sub_dir.replace("_", " ").title()
+                                section="Company Policies"
                             )
                         )
                     except Exception:
                         pass
 
-                # Also ingest PDF files directly (e.g. ABC Company Warehouse WHP and SHB suites)
+                # Ingest company policy PDF files (e.g. WHP-001 through WHP-020, POL-001 through POL-020)
                 for pdf_file in p_dir.glob("*.pdf"):
-                    if pdf_file.name.startswith("WHP-") or pdf_file.name.startswith("SHB-"):
+                    if pdf_file.name.startswith("WHP-") or pdf_file.name.startswith("POL-"):
                         try:
                             from pypdf import PdfReader
                             reader = PdfReader(str(pdf_file))
@@ -129,7 +129,7 @@ class PolicyKnowledgeEngine:
                                         source_file=pdf_file.name,
                                         page=page_idx,
                                         clause=header,
-                                        section=sub_dir.replace("_", " ").title()
+                                        section="Company Policies"
                                     )
                                 )
                         except Exception:

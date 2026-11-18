@@ -167,7 +167,7 @@ class AgentCoreLoop:
                     verdict = "NON-COMPLIANT (FAIL)"
                     rule_desc = "Freestanding pallet stacks are restricted to a maximum of 4 tiers or 1.8 meters."
                 elif "fire_extinguisher" in classes and "pallet" not in classes and "blocked_exit" not in classes:
-                    rag_query = "What are the standards for walking-working surfaces and pedestrian walkways under HBK-001?"
+                    rag_query = "What are the standards for walking-working surfaces and pedestrian walkways under POL-001 and WHP-004?"
                     obs = "Pedestrian walkway corridor is clear and unobstructed; safety equipment and compliant personnel present."
                     verdict = "COMPLIANT (PASS)"
                     rule_desc = "Walking-working surfaces must be maintained clean, unobstructed, and in orderly condition."
