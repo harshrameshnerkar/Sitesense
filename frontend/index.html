@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteSense — Multimodal Operations Intelligence Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .pulse-dot {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Top Navigation Header with 4-User Role Switcher -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/30">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-lg text-white leading-tight">SiteSense</h1>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">PRE-TRAINED TRANSFORMERS</span>
+        </div>
+        <p class="text-xs text-slate-400">Multimodal Operations & Compliance Platform</p>
+      </div>
+      <span class="ml-3 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span> PostgreSQL Online
+      </span>
+    </div>
+
+    <!-- Active User & 4-Role Persona Switcher -->
+    <div class="flex items-center space-x-4">
+      <div class="flex items-center bg-slate-900/80 border border-slate-700 rounded-lg p-1.5 space-x-2">
+        <i class="fa-solid fa-user-gear text-slate-400 text-xs ml-1.5"></i>
+        <label for="roleSwitcher" class="text-xs text-slate-400 font-medium">Active Persona:</label>
+        <select id="roleSwitcher" onchange="switchUserRole(this.value)" class="bg-slate-800 border border-slate-600 rounded px-2.5 py-1 text-xs text-white font-medium focus:outline-none focus:border-blue-500 cursor-pointer">
+          <option value="supervisor" selected>Supervisor — Alice Walker (EMP-003)</option>
+          <option value="manager">Manager — David Miller (EMP-002)</option>
+          <option value="employee">Employee — Charlie Reed (EMP-004)</option>
+          <option value="admin">Admin — Sarah Jenkins (EMP-001)</option>
+        </select>
+      </div>
+
+      <!-- User Profile Badge -->
+      <div class="flex items-center space-x-3 pl-2 border-l border-slate-700">
+        <div class="text-right">
+          <div class="text-xs font-semibold text-white flex items-center justify-end gap-1.5" id="userDisplayName">
+            <span>Alice Walker</span>
+            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300" id="userBadgeId">EMP-003</span>
+          </div>
+          <div class="text-[11px] text-blue-400 font-mono" id="userDepartment">Warehouse Logistics Hub</div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-400 border border-blue-500/30" id="userAvatar">
+          <i class="fa-solid fa-user-check"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App Layout with Sidebar -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Navigation Sidebar -->
+    <aside class="w-64 bg-slate-800/60 border-r border-slate-700 flex flex-col p-4 space-y-1">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-white bg-blue-600/20 text-blue-400 border border-blue-500/30">
+        <i class="fa-solid fa-chart-pie w-5"></i>
+        <span>Dashboard</span>
+      </button>
+
+      <button onclick="switchTab('upload')" id="nav-upload" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <i class="fa-solid fa-cloud-arrow-up w-5"></i>
+        <span>Field Upload</span>
+      </button>
+
+      <button onclick="switchTab('inspections')" id="nav-inspections" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <i class="fa-solid fa-clipboard-check w-5"></i>
+        <span>Inspection Audit</span>
+      </button>
+
+      <button onclick="switchTab('policies')" id="nav-policies" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <i class="fa-solid fa-book-bookmark w-5"></i>
+        <span>Company Policies</span>
+      </button>
+
+      <button onclick="switchTab('chat')" id="nav-chat" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <i class="fa-solid fa-robot w-5"></i>
+        <span>Agentic Chat</span>
+      </button>
+
+      <button onclick="switchTab('review')" id="nav-review" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <div class="flex items-center justify-between w-full">
+          <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-user-pen w-5"></i>
+            <span>Review Queue</span>
+          </div>
+          <span id="reviewBadge" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">0</span>
+        </div>
+      </button>
+
+      <!-- Active Employee Profile Card -->
+      <div class="pt-4 mt-auto border-t border-slate-700/60 text-xs text-slate-400 space-y-2">
+        <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/70 space-y-1">
+          <div class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-id-card text-blue-400"></i> <span id="cardName">Alice Walker</span>
+          </div>
+          <div class="text-[10px] text-slate-400">Dept: <span class="text-slate-200" id="cardDept">Logistics</span></div>
+          <div class="text-[10px] text-slate-400">Shift: <span class="text-slate-200" id="cardShift">Morning (06:00 - 14:30)</span></div>
+          <div class="text-[10px] text-slate-400">Site: <span class="text-slate-200">Site 7 (Chicago Hub)</span></div>
+        </div>
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-400">Database:</span>
+          <span class="text-emerald-400 font-mono font-medium">PostgreSQL :5432</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content Workspace -->
+    <main class="flex-1 overflow-y-auto p-6 bg-slate-900/90 custom-scroll">
+
+      <!-- ============================================== -->
+      <!-- TAB 1: DASHBOARD -->
+      <!-- ============================================== -->
+      <section id="tab-dashboard" class="tab-content active space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">Cross-Site Operations Dashboard</h2>
+            <p class="text-sm text-slate-400">Automated safety compliance, vision findings, and human-in-the-loop review metrics.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-900/40 text-blue-300 border border-blue-700/50">
+              <i class="fa-solid fa-arrows-rotate mr-1"></i> Real-time Telemetry
+            </span>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider">Total Inspections</span>
+              <i class="fa-solid fa-warehouse text-blue-400"></i>
+            </div>
+            <div class="text-3xl font-extrabold text-white" id="kpiInspections">4</div>
+            <div class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+              <i class="fa-solid fa-circle-check"></i> Across 3 Active Facilities
+            </div>
+          </div>
+
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider">Compliance Rate</span>
+              <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+            </div>
+            <div class="text-3xl font-extrabold text-emerald-400" id="kpiPassRate">75.0%</div>
+            <div class="text-xs text-slate-400 mt-1">Grounded against Safety Handbook</div>
+          </div>
+
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider">Top Failing Rule</span>
+              <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+            </div>
+            <div class="text-base font-bold text-amber-300 truncate" id="kpiTopRule">Walkway Clearance Rule</div>
+            <div class="text-xs text-slate-400 mt-1">Section 1.2: Egress Route Clearances</div>
+          </div>
+
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider">Human Review Queue</span>
+              <i class="fa-solid fa-user-clock text-purple-400"></i>
+            </div>
+            <div class="text-3xl font-extrabold text-purple-400" id="kpiPending">0</div>
+            <div class="text-xs text-slate-400 mt-1">Low-Confidence OCR Extractions</div>
+          </div>
+        </div>
+
+        <!-- Recent Inspections Table -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+          <div class="px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="font-semibold text-white text-sm">Recent Facility Inspection Audits</h3>
+            <span class="text-xs text-slate-400">PostgreSQL Live Data</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-300">
+              <thead class="bg-slate-900/60 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700">
+                <tr>
+                  <th class="px-5 py-3">Inspection ID</th>
+                  <th class="px-5 py-3">Facility Location</th>
+                  <th class="px-5 py-3">Timestamp (UTC)</th>
+                  <th class="px-5 py-3">Status</th>
+                  <th class="px-5 py-3">Compliance Score</th>
+                  <th class="px-5 py-3 text-right">Audit Action</th>
+                </tr>
+              </thead>
+              <tbody id="inspectionsTableBody" class="divide-y divide-slate-700/60 text-xs">
+                <!-- Dynamically loaded rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: FIELD UPLOAD -->
+      <!-- ============================================== -->
+      <section id="tab-upload" class="tab-content space-y-6 max-w-3xl mx-auto">
+        <div>
+          <h2 class="text-xl font-bold text-white">Field Inspection Upload</h2>
+          <p class="text-sm text-slate-400">Upload warehouse scene photographs, CCTV stills, and inbound delivery paperwork.</p>
+        </div>
+
+        <!-- 1-Click Pre-Loaded Real-World Test Buttons -->
+        <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2.5">
+          <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-camera text-blue-400"></i> Raw Unlabelled Warehouse Images (Clean Real Photos without Overlays):
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <button type="button" onclick="loadSampleFile('raw_walkway_pallet')" class="bg-slate-900 hover:bg-slate-700 border border-red-500/40 text-red-300 hover:text-white px-2.5 py-2 rounded-lg text-xs font-medium text-left transition flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
+              <div>
+                <div class="font-bold">Raw Walkway Pallet</div>
+                <div class="text-[10px] text-slate-400">Obstruction in Aisle (POL-001)</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="loadSampleFile('raw_clean_walkway')" class="bg-slate-900 hover:bg-slate-700 border border-emerald-500/40 text-emerald-300 hover:text-white px-2.5 py-2 rounded-lg text-xs font-medium text-left transition flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-400"></i>
+              <div>
+                <div class="font-bold">Raw Clean Walkway</div>
+                <div class="text-[10px] text-slate-400">100% Compliant Aisle (Pass)</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="loadSampleFile('raw_loading_dock')" class="bg-slate-900 hover:bg-slate-700 border border-amber-500/40 text-amber-300 hover:text-white px-2.5 py-2 rounded-lg text-xs font-medium text-left transition flex items-center gap-2">
+              <i class="fa-solid fa-hard-hat text-amber-400"></i>
+              <div>
+                <div class="font-bold">Raw Dock (No Helmet)</div>
+                <div class="text-[10px] text-slate-400">Missing PPE in Bay (POL-003)</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="loadSampleFile('raw_overstacked')" class="bg-slate-900 hover:bg-slate-700 border border-orange-500/40 text-orange-300 hover:text-white px-2.5 py-2 rounded-lg text-xs font-medium text-left transition flex items-center gap-2">
+              <i class="fa-solid fa-cubes-stacked text-orange-400"></i>
+              <div>
+                <div class="font-bold">Raw Overstacked Pallet</div>
+                <div class="text-[10px] text-slate-400">5-Tier High Stack (POL-004)</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="loadSampleFile('raw_exit_blocked')" class="bg-slate-900 hover:bg-slate-700 border border-rose-500/40 text-rose-300 hover:text-white px-2.5 py-2 rounded-lg text-xs font-medium text-left transition flex items-center gap-2">
+              <i class="fa-solid fa-door-closed text-rose-400"></i>
+              <div>
+                <div class="font-bold">Raw Blocked Exit</div>
+                <div class="text-[10px] text-slate-400">Pallets at Fire Door (POL-007)</div>
+              </div>
+            </button>
+
+            <button type="button" onclick="loadSampleFile('delivery_note')" class="bg-slate-900 hover:bg-slate-700 border border-purple-500/40 text-purple-300 hover:text-white px-2.5 py-2 rounded-lg text-xs font-medium text-left transition flex items-center gap-2">
+              <i class="fa-solid fa-file-pdf text-purple-400"></i>
+              <div>
+                <div class="font-bold">Delivery Note PDF</div>
+                <div class="text-[10px] text-slate-400">Scratched (Review Queue)</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <form id="uploadForm" onsubmit="handleUpload(event)" class="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Target Inspection Facility</label>
+            <select id="uploadSiteSelect" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="1">Warehouse Site 7 (Chicago Distribution Hub)</option>
+              <option value="2">Distribution Depot 12 (Dallas Logistics Park)</option>
+              <option value="3">Retail Store 42 (Columbus Mall)</option>
+            </select>
+          </div>
+
+          <!-- Drag and drop box -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Media & Paperwork Files (Kept Separately from Safety Handbooks)</label>
+            <div class="border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-xl p-8 text-center cursor-pointer transition bg-slate-900/50" onclick="document.getElementById('fileInput').click()">
+              <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-400 mb-2"></i>
+              <div class="text-sm font-medium text-slate-200">Click or drag warehouse photos & delivery PDFs here</div>
+              <div class="text-xs text-slate-400 mt-1">Evaluated automatically against company safety policy standards</div>
+              <input type="file" id="fileInput" multiple accept="image/*,video/*,application/pdf" class="hidden" onchange="handleFileSelect(event)">
+            </div>
+            <div id="fileList" class="mt-2 text-xs text-slate-300 space-y-1"></div>
+          </div>
+
+          <!-- Progress -->
+          <div id="uploadProgressContainer" class="hidden space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span id="uploadStatusText">Executing Multimodal Ingestion Pipeline...</span>
+              <span id="uploadPercent">0%</span>
+            </div>
+            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div id="uploadProgressBar" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <button type="submit" id="btnSubmitUpload" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-lg text-sm shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-upload"></i> Process Multimodal Inspection
+          </button>
+        </form>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 3: INSPECTION AUDIT VIEW (Side-by-Side) -->
+      <!-- ============================================== -->
+      <section id="tab-inspections" class="tab-content space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-white">Inspection Audit: Side-by-Side Policy Comparison</h2>
+            <p class="text-sm text-slate-400">Real-world visual detections directly cross-referenced with official company policy clauses.</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <select id="inspectionSelector" onchange="loadInspectionDetail(this.value)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+              <option value="1">Inspection #1 (Warehouse Site 7)</option>
+              <option value="2">Inspection #2 (Warehouse Site 7)</option>
+              <option value="3">Inspection #3 (Warehouse Site 7)</option>
+              <option value="4" selected>Inspection #4 (Warehouse Site 7)</option>
+            </select>
+            <button onclick="exportCurrentReport()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-file-pdf text-red-400"></i> Export Official PDF Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Side-by-Side Visual vs Policy Evaluation Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Column 1: Annotated Visual Evidence -->
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-camera text-blue-400"></i> Annotated Warehouse Evidence
+              </h3>
+              <span class="text-[11px] font-mono text-slate-400">Model: Zero-Shot Transformer</span>
+            </div>
+
+            <div class="aspect-video bg-black rounded-lg overflow-hidden border border-slate-700 flex items-center justify-center relative">
+              <img id="detailAnnotatedImage" src="/storage/annotated/annotated_1_scene.jpg" onerror="this.src='/storage/uploads/4/scene.jpg'" class="w-full h-full object-contain" alt="Evidence">
+              <span class="absolute top-2 left-2 px-2.5 py-1 rounded bg-black/80 text-[11px] text-amber-300 font-mono border border-amber-400/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Zone: Walkway A (Clearance Mandatory)
+              </span>
+            </div>
+
+            <!-- Detected Objects -->
+            <div>
+              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Detected Objects in Scene:</div>
+              <div id="detailDetectionsList" class="flex flex-wrap gap-2 text-xs">
+                <!-- Dynamically loaded chips -->
+              </div>
+            </div>
+
+            <!-- Inbound Logistics Extractions -->
+            <div class="pt-3 border-t border-slate-700/60">
+              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Delivery Note Paperwork Manifest:</div>
+              <div id="detailExtractionsList" class="grid grid-cols-2 gap-2 text-xs">
+                <!-- Dynamically loaded extractions -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Exact Policy Clause Comparison & Corrective Actions -->
+          <div class="space-y-5">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-white text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-scale-balanced text-emerald-400"></i> Grounded Policy Rule Findings
+                </h3>
+                <span class="text-xs text-slate-400">4 Compliance Checks</span>
+              </div>
+              <div id="detailFindingsList" class="space-y-3 text-xs">
+                <!-- Detailed side-by-side policy cards loaded dynamically -->
+              </div>
+            </div>
+
+            <!-- Action Approval Gate (DoD #13) -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-white text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-ticket text-amber-400"></i> Corrective Remediation Ticket Creation
+                </h3>
+                <span class="text-[10px] uppercase font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">Human Approval Gate</span>
+              </div>
+              <p class="text-xs text-slate-300">Under corporate governance, remediation work orders cannot be autonomously dispatched by AI without verified human supervisor/manager sign-off.</p>
+              
+              <div class="flex items-center gap-3 pt-1">
+                <button type="button" onclick="createRemediationTicket(true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2 px-4 rounded-lg transition flex items-center gap-1.5 shadow-md">
+                  <i class="fa-solid fa-check"></i> Sign & Approve Work Order
+                </button>
+                <button type="button" onclick="createRemediationTicket(false)" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold text-xs py-2 px-4 rounded-lg transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-ban"></i> Test Unapproved Block (DoD #13)
+                </button>
+              </div>
+              <div id="ticketResultMsg" class="text-xs font-mono hidden pt-2"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 4: COMPANY SAFETY POLICIES & HANDBOOKS -->
+      <!-- ============================================== -->
+      <section id="tab-policies" class="tab-content space-y-6 max-w-5xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <div>
+            <h2 class="text-xl font-bold text-white">Company Safety Policies & Handbooks</h2>
+            <p class="text-sm text-slate-400">Official compliance manuals ingested into the RAG Knowledge Engine for grounded citations.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <i class="fa-solid fa-check-double mr-1"></i> 30 Ingested Compliance Manuals
+            </span>
+          </div>
+        </div>
+
+        <!-- Section 1: 10 Certified Safety Handbooks -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+              <i class="fa-solid fa-book-bookmark text-blue-400"></i> 10 Certified Safety Handbooks (Industry & Regulatory Standards)
+            </h3>
+            <span class="text-xs text-slate-400">OSHA / ISO / NFPA / NIOSH</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-001: OSHA General Industry Warehouse Safety</span>
+                <span class="text-[10px] text-slate-400 font-mono">29 CFR 1910</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">Walking-working surfaces, egress means, aisle markings, and general material storage standards.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-002: ISO 45001 OH&S Management System</span>
+                <span class="text-[10px] text-slate-400 font-mono">ISO 45001:2018</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">Operational risk elimination, hierarchy of hazard controls, and structured evacuation audit procedures.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-003: Powered Industrial Trucks Operator Guide</span>
+                <span class="text-[10px] text-slate-400 font-mono">ANSI B56.1</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">Forklift pre-shift inspections, travel speed limits (8 km/h), trailer chocking, and blind corner horns.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-004: Facility Emergency Action Plan (EAP)</span>
+                <span class="text-[10px] text-slate-400 font-mono">EAP-2026</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">Alarm initiation protocols, emergency door push bars, floor warden sweeps, and muster roll-call.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-005: Hazard Communication & SDS Standards</span>
+                <span class="text-[10px] text-slate-400 font-mono">HazCom 1910.1200</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">GHS chemical pictograms, 24/7 SDS binder access, and universal absorbent spill response kits.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-006: Heavy-Duty Pallet Racking Code</span>
+                <span class="text-[10px] text-slate-400 font-mono">RMI MH16.1</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">Upright column verticality, beam deflection limits (L/180), baseplate anchor torque, and beam safety pins.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-007: Freight Receiving & Yard Safety</span>
+                <span class="text-[10px] text-slate-400 font-mono">Dock Operations</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">Clockwise yard traffic, dock drop gates on open bays, hydraulic dock leveler lip overlap standards.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-008: Fire Prevention & Life Safety Code</span>
+                <span class="text-[10px] text-slate-400 font-mono">NFPA 1 & 13</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">18-inch sprinkler deflector clearance, hot work permit procedures, and yellow flammable liquid cabinets.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-009: Warehouse Ergonomics & Lifting Safety</span>
+                <span class="text-[10px] text-slate-400 font-mono">NIOSH Equations</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">23 kg (50 lb) single-person lift limit, power zone lifting, and mandatory workstation rotations.</p>
+            </div>
+
+            <div class="bg-slate-900/70 p-3 rounded-lg border border-slate-700/80 space-y-1">
+              <div class="font-bold text-blue-400 flex justify-between">
+                <span>HBK-010: Environmental & Hazardous Waste Guide</span>
+                <span class="text-[10px] text-slate-400 font-mono">EPA RCRA</span>
+              </div>
+              <p class="text-slate-300 text-[11px]">Hazardous waste drum labeling, stormwater drain protection, and 3-year manifest retention.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: 20 Specific Company Policies -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+              <i class="fa-solid fa-file-shield text-emerald-400"></i> 20 Specific Company Operational Safety Policies (POL-001 through POL-020)
+            </h3>
+            <span class="text-xs text-slate-400">SiteSense Ground-Truth Policies</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs max-h-96 overflow-y-auto custom-scroll pr-1">
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-001</b>: Walkway & Egress Clearances
+                <div class="text-[10px] text-slate-400">Clause 1.2: Minimum 1.2m clear path; staging ban on yellow aisles.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-002</b>: Fire Extinguisher Accessibility
+                <div class="text-[10px] text-slate-400">Clause 2.1: 1.0m (36-inch) radial clearance around mounted units.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-003</b>: Mandatory PPE Protocols
+                <div class="text-[10px] text-slate-400">Clause 3.4: High-vis vests and hard hats required in loading docks.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-004</b>: Pallet Stacking Height Limits
+                <div class="text-[10px] text-slate-400">Clause 4.1: Maximum 3 tiers (2.4m) for free-standing floor stacks.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 font-mono">Warning</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-005</b>: Forklift Traffic Segregation
+                <div class="text-[10px] text-slate-400">Clause 5.1: 3-meter pedestrian buffer; 8 km/h speed limit.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 font-mono">Standard</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-006</b>: Hazardous Spill Containment
+                <div class="text-[10px] text-slate-400">Clause 6.2: Universal absorbents deployed within 5 mins of release.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-007</b>: Emergency Exit Integrity
+                <div class="text-[10px] text-slate-400">Clause 7.1: Zero obstruction within 2m; lighted push bars operational.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-008</b>: Loading Dock Chocking
+                <div class="text-[10px] text-slate-400">Clause 8.3: Automated dock locks or dual wheel chocks mandatory.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-009</b>: Pallet Racking Integrity
+                <div class="text-[10px] text-slate-400">Clause 9.1: Deflections &gt;3mm tagged red; depalletized in 2 hours.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 font-mono">Warning</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-010</b>: Electrical Panel Clearances
+                <div class="text-[10px] text-slate-400">Clause 10.2: 36-inch deep unobstructed frontal zone required.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-011</b>: Mechanical Conveyor Guarding
+                <div class="text-[10px] text-slate-400">Clause 11.1: Fixed chain guards; emergency pull cords every 10m.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 font-mono">Warning</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-012</b>: Inbound Trailer Seal Audits
+                <div class="text-[10px] text-slate-400">Clause 12.4: Bolt seal photographed and matched to Bill of Lading.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 font-mono">Standard</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-013</b>: Battery Charging Ventilation
+                <div class="text-[10px] text-slate-400">Clause 13.1: Active exhaust fans; eyewash within 25ft of bays.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-014</b>: Defective Pallet Quarantine
+                <div class="text-[10px] text-slate-400">Clause 14.2: Damaged stringers moved to Bay 12 corral; max 15 units.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 font-mono">Warning</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-015</b>: Combustible Waste Baling
+                <div class="text-[10px] text-slate-400">Clause 15.3: Cardboard and wrap baled twice per shift; no aisle debris.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 font-mono">Warning</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-016</b>: Emergency Eyewash Stations
+                <div class="text-[10px] text-slate-400">Clause 16.1: 10-second travel time; weekly 3-min flush verification.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-017</b>: Pedestrian Crosswalks
+                <div class="text-[10px] text-slate-400">Clause 17.2: Absolute pedestrian right of way; convex corner mirrors.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 font-mono">Standard</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-018</b>: Cold Storage Thermal PPE
+                <div class="text-[10px] text-slate-400">Clause 18.4: Sub-zero suits; max 90 mins consecutive in -25°C.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 font-mono">Warning</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-019</b>: Chemical Secondary Containment
+                <div class="text-[10px] text-slate-400">Clause 19.1: Polyethylene sump 110% capacity; acids/bases segregated.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-300 font-mono">Critical</span>
+            </div>
+
+            <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700 flex justify-between items-start">
+              <div>
+                <b class="text-emerald-400">POL-020</b>: Visitor & Contractor Badging
+                <div class="text-[10px] text-slate-400">Clause 20.3: RED visitor badges; mandatory safety escort on floor.</div>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 font-mono">Standard</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 5: AGENTIC CHAT -->
+      <!-- ============================================== -->
+      <section id="tab-chat" class="tab-content space-y-4 max-w-4xl mx-auto flex flex-col h-[calc(100vh-140px)]">
+        <div>
+          <h2 class="text-xl font-bold text-white">Multimodal Autonomous Operations Agent</h2>
+          <p class="text-sm text-slate-400">ReAct loop with tool execution, streaming tokens, policy citations, and trace inspection.</p>
+        </div>
+
+        <!-- Chat Messages Container -->
+        <div id="chatMessages" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-4 overflow-y-auto space-y-4 custom-scroll">
+          <!-- Initial Welcome Message -->
+          <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="bg-slate-700/60 border border-slate-600/70 rounded-xl p-3.5 text-sm text-slate-200 max-w-2xl space-y-2.5">
+              <p class="font-medium text-white">Hello! I am the SiteSense Operations & Compliance Agent.</p>
+              <p class="text-xs text-slate-300">Upload any raw warehouse photograph, ask about the 20 Company Policies or 10 Safety Handbooks, or query SQL inspection metrics.</p>
+              
+              <div class="pt-1 space-y-1.5">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">1-Click Multimodal Photo Evaluation (Raw Images):</div>
+                <div class="flex flex-wrap gap-1.5 text-xs">
+                  <button onclick="attachRawPhoto('warehouse_raw_walkway_pallet.jpg', 'Evaluate this raw warehouse photograph against our company safety policy. Is there any walkway violation?')" class="bg-purple-900/40 hover:bg-purple-800/60 border border-purple-600 text-purple-200 px-2 py-1 rounded">📷 Walkway Pallet (POL-001)</button>
+                  <button onclick="attachRawPhoto('warehouse_raw_loading_dock_worker.jpg', 'Does the worker in this loading bay comply with our mandatory PPE requirements?')" class="bg-purple-900/40 hover:bg-purple-800/60 border border-purple-600 text-purple-200 px-2 py-1 rounded">📷 Dock Worker PPE (POL-003)</button>
+                  <button onclick="attachRawPhoto('warehouse_raw_overstacked_pallets.jpg', 'Does this pallet stack height violate our material handling limits?')" class="bg-purple-900/40 hover:bg-purple-800/60 border border-purple-600 text-purple-200 px-2 py-1 rounded">📷 Pallet Overstack (POL-004)</button>
+                  <button onclick="attachRawPhoto('warehouse_raw_exit_door_blocked.jpg', 'Are these pallets in front of the emergency door permissible under life safety rules?')" class="bg-purple-900/40 hover:bg-purple-800/60 border border-purple-600 text-purple-200 px-2 py-1 rounded">📷 Blocked Exit Door (POL-007)</button>
+                  <button onclick="attachRawPhoto('warehouse_raw_clean_walkway.jpg', 'Verify whether this warehouse corridor is in full compliance with safety policies.')" class="bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-600 text-emerald-200 px-2 py-1 rounded">📷 Compliant Walkway (Pass)</button>
+                </div>
+
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 pt-1">Grounded Policy & Handbook Questions:</div>
+                <div class="flex flex-wrap gap-1.5 text-xs text-blue-300">
+                  <button onclick="setChatPrompt('What does OSHA 1910.22 state regarding walking-working surfaces?')" class="bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700 px-2 py-1 rounded">"OSHA 1910.22 Walking Surfaces"</button>
+                  <button onclick="setChatPrompt('What are the rules for forklift battery charging stations under POL-013?')" class="bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700 px-2 py-1 rounded">"Battery Charging Ventilation (POL-013)"</button>
+                  <button onclick="setChatPrompt('Which compliance rule failed most frequently across our sites last month?')" class="bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700 px-2 py-1 rounded">"Most Frequent Rule Failure (SQL)"</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form onsubmit="handleSendChat(event)" class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center space-x-2">
+          <button type="button" onclick="document.getElementById('chatImgInput').click()" class="text-slate-400 hover:text-blue-400 p-2 text-base" title="Attach Image">
+            <i class="fa-solid fa-paperclip"></i>
+          </button>
+          <input type="file" id="chatImgInput" accept="image/*" class="hidden" onchange="handleChatImgSelected(event)">
+          
+          <div class="flex-1 relative">
+            <input type="text" id="chatInput" placeholder="Ask anything about inspections, policies, or database analytics..." class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+            <span id="attachedImgPill" class="hidden absolute right-3 top-2 px-2 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center gap-1">
+              <i class="fa-solid fa-image"></i> Image attached
+              <button type="button" onclick="clearAttachedImg()" class="text-xs hover:text-white">&times;</button>
+            </span>
+          </div>
+
+          <button type="submit" id="btnSendChat" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2.5 rounded-lg text-sm transition shadow-lg shadow-blue-600/30 flex items-center gap-1.5">
+            <span>Send</span> <i class="fa-solid fa-arrow-up"></i>
+          </button>
+        </form>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 6: HUMAN REVIEW QUEUE -->
+      <!-- ============================================== -->
+      <section id="tab-review" class="tab-content space-y-6 max-w-4xl mx-auto">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">Human-in-the-Loop Review Queue</h2>
+            <p class="text-sm text-slate-400">Low-confidence document extractions (confidence &lt; 80%) routed for verified human approval.</p>
+          </div>
+          <span class="text-xs text-amber-300 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20 font-mono">
+            Role Required: Manager / Admin
+          </span>
+        </div>
+
+        <div id="reviewItemsContainer" class="space-y-4">
+          <!-- Dynamically populated review cards -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Client-side Logic -->
+  <script>
+    // 4 Demonstration Personas
+    const USERS = {
+      supervisor: {
+        id: 3,
+        role: 'supervisor',
+        name: 'Alice Walker',
+        badge: 'EMP-003',
+        dept: 'Warehouse Logistics & Staging Hub',
+        shift: 'Morning Shift (06:00 - 14:30)',
+        phone: '+1 (312) 555-0103',
+        token: 'jwt_mock_token_user_3_supervisor'
+      },
+      manager: {
+        id: 2,
+        role: 'manager',
+        name: 'David Miller',
+        badge: 'EMP-002',
+        dept: 'Environmental Health & Safety (EHS)',
+        shift: 'Day Shift (08:00 - 16:30)',
+        phone: '+1 (312) 555-0102',
+        token: 'jwt_mock_token_user_2_manager'
+      },
+      employee: {
+        id: 5,
+        role: 'employee',
+        name: 'Charlie Reed',
+        badge: 'EMP-004',
+        dept: 'Inbound Receiving & Forklift Logistics',
+        shift: 'Day Shift (07:00 - 15:30)',
+        phone: '+1 (312) 555-0104',
+        token: 'jwt_mock_token_user_5_employee'
+      },
+      admin: {
+        id: 1,
+        role: 'admin',
+        name: 'Sarah Jenkins',
+        badge: 'EMP-001',
+        dept: 'Enterprise IT & Safety Governance',
+        shift: 'General Shift (08:00 - 17:00)',
+        phone: '+1 (312) 555-0101',
+        token: 'jwt_mock_token_user_1_admin'
+      }
+    };
+
+    let currentUser = USERS.supervisor;
+    let activeTab = 'dashboard';
+    let attachedImgBase64 = null;
+    let selectedFiles = [];
+
+    function switchUserRole(roleKey) {
+      currentUser = USERS[roleKey] || USERS.supervisor;
+      document.getElementById('userDisplayName').innerHTML = `<span>${currentUser.name}</span><span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300">${currentUser.badge}</span>`;
+      document.getElementById('userDepartment').innerText = currentUser.dept;
+      document.getElementById('cardName').innerText = currentUser.name;
+      document.getElementById('cardDept').innerText = currentUser.dept;
+      document.getElementById('cardShift').innerText = currentUser.shift;
+
+      console.log(`Switched active user to: ${currentUser.name} (${currentUser.role})`);
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('bg-blue-600/20', 'text-blue-400', 'border', 'border-blue-500/30');
+        el.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      const activeNav = document.getElementById(`nav-${tabName}`);
+      if (activeNav) {
+        activeNav.classList.add('bg-blue-600/20', 'text-blue-400', 'border', 'border-blue-500/30');
+        activeNav.classList.remove('text-slate-400');
+      }
+
+      if (tabName === 'dashboard') fetchDashboardMetrics();
+      if (tabName === 'inspections') loadInspectionDetail(document.getElementById('inspectionSelector').value || 1);
+      if (tabName === 'review') fetchReviewQueue();
+    }
+
+    // Dashboard fetch
+    async function fetchDashboardMetrics() {
+      try {
+        const res = await fetch('/dashboard/metrics', {
+          headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+        const data = await res.json();
+        document.getElementById('kpiInspections').innerText = data.inspections || 4;
+        document.getElementById('kpiPassRate').innerText = `${data.pass_rate}%`;
+        document.getElementById('kpiPending').innerText = data.pending_review || 0;
+        document.getElementById('reviewBadge').innerText = data.pending_review || 0;
+
+        if (data.top_failing_rules && data.top_failing_rules.length > 0) {
+          document.getElementById('kpiTopRule').innerText = data.top_failing_rules[0].rule_name;
+        }
+        fetchInspectionsList();
+      } catch (e) {
+        console.error("Dashboard metrics error:", e);
+      }
+    }
+
+    // Inspections list fetch
+    async function fetchInspectionsList() {
+      try {
+        const res = await fetch('/inspections');
+        const items = await res.json();
+        const tbody = document.getElementById('inspectionsTableBody');
+        tbody.innerHTML = '';
+        items.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/80 transition";
+          tr.innerHTML = `
+            <td class="px-5 py-3 font-mono font-medium text-slate-200">#${item.id}</td>
+            <td class="px-5 py-3">${item.site}</td>
+            <td class="px-5 py-3 text-slate-400 text-xs">${item.date}</td>
+            <td class="px-5 py-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">${item.status.toUpperCase()}</span></td>
+            <td class="px-5 py-3 font-semibold text-emerald-400">${item.pass_rate}%</td>
+            <td class="px-5 py-3 text-right">
+              <button onclick="viewInspection(${item.id})" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View Side-by-Side Audit</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error("Inspections list error:", e);
+      }
+    }
+
+    function viewInspection(id) {
+      switchTab('inspections');
+      document.getElementById('inspectionSelector').value = id;
+      loadInspectionDetail(id);
+    }
+
+    async function loadInspectionDetail(id) {
+      try {
+        const res = await fetch(`/inspections/${id}`);
+        const data = await res.json();
+
+        // Visual evidence image
+        const imgEl = document.getElementById('detailAnnotatedImage');
+        imgEl.src = `/storage/annotated/annotated_${id}_scene.jpg`;
+
+        // Side-by-Side Findings
+        const findingsList = document.getElementById('detailFindingsList');
+        findingsList.innerHTML = '';
+        data.findings.forEach(f => {
+          const isPass = f.status === 'pass';
+          const card = document.createElement('div');
+          card.className = `p-3.5 rounded-lg border ${isPass ? 'bg-emerald-950/20 border-emerald-800/50 text-emerald-200' : 'bg-red-950/20 border-red-800/50 text-red-200'} space-y-1.5`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between font-bold">
+              <span>${f.rule_name}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold ${isPass ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}">${isPass ? 'COMPLIANT' : 'NON-COMPLIANCE'}</span>
+            </div>
+            <div class="text-xs text-slate-300">${f.explanation}</div>
+            <div class="text-[11px] text-blue-300 font-mono flex items-center gap-1.5 pt-0.5">
+              <i class="fa-solid fa-bookmark text-blue-400"></i> ${f.policy_ref}
+            </div>
+          `;
+          findingsList.appendChild(card);
+        });
+
+        // Extractions
+        const extList = document.getElementById('detailExtractionsList');
+        extList.innerHTML = '';
+        data.extractions.forEach(e => {
+          const card = document.createElement('div');
+          card.className = "bg-slate-900/60 p-2.5 rounded-lg border border-slate-700";
+          card.innerHTML = `
+            <div class="text-[10px] text-slate-400 uppercase font-mono">${e.field_name}</div>
+            <div class="font-bold text-white text-xs mt-0.5">${e.value}</div>
+            <div class="text-[10px] ${e.review_status === 'pending_review' ? 'text-amber-400' : 'text-emerald-400'} mt-1">Confidence: ${(e.confidence * 100).toFixed(0)}%</div>
+          `;
+          extList.appendChild(card);
+        });
+
+        // Detections
+        const detList = document.getElementById('detailDetectionsList');
+        detList.innerHTML = '';
+        data.detections.forEach(d => {
+          const chip = document.createElement('span');
+          chip.className = "px-2.5 py-1 rounded bg-slate-700/80 text-slate-200 font-mono text-[11px] border border-slate-600";
+          chip.innerText = `${d.class_name} (${(d.confidence * 100).toFixed(0)}%) [${d.zone || 'general'}]`;
+          detList.appendChild(chip);
+        });
+
+      } catch (e) {
+        console.error("Detail load error:", e);
+      }
+    }
+
+    // 1-Click Sample File Loader
+    async function loadSampleFile(type) {
+      const fileList = document.getElementById('fileList');
+      let filename = 'warehouse_scene_walkway_blocked.jpg';
+      let displayName = '📷 warehouse_scene_walkway_blocked.jpg';
+      let url = '/data/images/warehouse_scene_walkway_blocked.jpg';
+
+      if (type === 'raw_walkway_pallet') {
+        filename = 'warehouse_raw_walkway_pallet.jpg';
+        displayName = '📷 warehouse_raw_walkway_pallet.jpg (Obstruction in Walkway - POL-001)';
+        url = `/data/images/${filename}`;
+      } else if (type === 'raw_clean_walkway') {
+        filename = 'warehouse_raw_clean_walkway.jpg';
+        displayName = '📷 warehouse_raw_clean_walkway.jpg (100% Compliant Walkway - Pass)';
+        url = `/data/images/${filename}`;
+      } else if (type === 'raw_loading_dock') {
+        filename = 'warehouse_raw_loading_dock_worker.jpg';
+        displayName = '📷 warehouse_raw_loading_dock_worker.jpg (Missing PPE - POL-003)';
+        url = `/data/images/${filename}`;
+      } else if (type === 'raw_overstacked') {
+        filename = 'warehouse_raw_overstacked_pallets.jpg';
+        displayName = '📷 warehouse_raw_overstacked_pallets.jpg (Overstacked Pallet - POL-004)';
+        url = `/data/images/${filename}`;
+      } else if (type === 'raw_exit_blocked') {
+        filename = 'warehouse_raw_exit_door_blocked.jpg';
+        displayName = '📷 warehouse_raw_exit_door_blocked.jpg (Blocked Exit Door - POL-007)';
+        url = `/data/images/${filename}`;
+      } else if (type === 'delivery_note') {
+        filename = 'delivery_note_po98423_scratched.pdf';
+        displayName = '📄 delivery_note_po98423_scratched.pdf (Scratched - Human Review Queue)';
+        url = `/data/documents/${filename}`;
+      } else if (type === 'walkway_blocked') {
+        filename = 'warehouse_scene_walkway_blocked.jpg';
+        displayName = '📷 warehouse_scene_walkway_blocked.jpg (Loaded sample)';
+        url = `/data/images/${filename}`;
+      } else if (type === 'clear_compliant') {
+        filename = 'warehouse_scene_clear_compliant.jpg';
+        displayName = '📷 warehouse_scene_clear_compliant.jpg (Loaded sample)';
+        url = `/data/images/${filename}`;
+      }
+
+      fileList.innerHTML = `
+        <div class="p-2 rounded bg-slate-800 border border-blue-500/50 flex items-center justify-between">
+          <span class="text-xs text-blue-300">Loading ${filename}...</span>
+          <span class="text-blue-400 text-xs"><i class="fa-solid fa-spinner fa-spin"></i></span>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: blob.type || (filename.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg') });
+        selectedFiles = [file];
+        fileList.innerHTML = `
+          <div class="p-2.5 rounded bg-slate-800 border border-emerald-500/50 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-semibold text-white">${displayName}</div>
+              <div class="text-[10px] text-slate-400">Ready for multimodal ingestion & policy checking</div>
+            </div>
+            <span class="text-emerald-400 text-xs font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">${(blob.size / 1024).toFixed(0)} KB Ready</span>
+          </div>
+        `;
+      } catch (err) {
+        console.error('Error fetching sample file:', err);
+        fileList.innerHTML = `
+          <div class="p-2 rounded bg-slate-800 border border-slate-600 flex items-center justify-between">
+            <span class="text-xs text-slate-200">${displayName}</span>
+            <span class="text-amber-400 text-xs font-mono">Ready (Server Asset)</span>
+          </div>
+        `;
+      }
+    }
+
+    function handleFileSelect(event) {
+      selectedFiles = Array.from(event.target.files);
+      const fileList = document.getElementById('fileList');
+      fileList.innerHTML = '';
+      selectedFiles.forEach(f => {
+        const item = document.createElement('div');
+        item.className = "p-2 rounded bg-slate-800 border border-slate-600 flex items-center justify-between";
+        item.innerHTML = `<span>${f.name}</span><span class="text-xs text-slate-400">${(f.size / 1024).toFixed(0)} KB</span>`;
+        fileList.appendChild(item);
+      });
+    }
+
+    // Upload Execution
+    async function handleUpload(event) {
+      event.preventDefault();
+      const progressContainer = document.getElementById('uploadProgressContainer');
+      const progressBar = document.getElementById('uploadProgressBar');
+      const statusText = document.getElementById('uploadStatusText');
+      progressContainer.classList.remove('hidden');
+
+      statusText.innerText = "Submitting files to API Gateway...";
+      progressBar.style.width = "30%";
+
+      const formData = new FormData();
+      formData.append('site_id', document.getElementById('uploadSiteSelect').value);
+      formData.append('user_id', currentUser.id);
+
+      if (selectedFiles.length > 0) {
+        selectedFiles.forEach(f => formData.append('files', f));
+      } else {
+        // Use default test assets
+        const imgBlob = await fetch('/data/images/warehouse_scene_walkway_blocked.jpg').then(r => r.blob()).catch(() => new Blob(['fake image'], {type: 'image/jpeg'}));
+        formData.append('files', imgBlob, 'scene.jpg');
+      }
+
+      try {
+        const res = await fetch('/inspections', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentUser.token}` },
+          body: formData
+        });
+
+        const uploadRes = await res.json();
+        progressBar.style.width = "70%";
+        statusText.innerText = `Processing Multimodal Pipeline (Job: ${uploadRes.job_id.slice(0, 8)})...`;
+
+        // Poll job
+        const pollInterval = setInterval(async () => {
+          const jobRes = await fetch(`/jobs/${uploadRes.job_id}`);
+          const jobData = await jobRes.json();
+          if (jobData.status === 'completed') {
+            clearInterval(pollInterval);
+            progressBar.style.width = "100%";
+            statusText.innerText = "Inspection Completed! Redirecting to Audit...";
+            setTimeout(() => {
+              progressContainer.classList.add('hidden');
+              switchTab('inspections');
+              viewInspection(uploadRes.inspection_id);
+            }, 1000);
+          }
+        }, 800);
+
+      } catch (err) {
+        console.error("Upload error:", err);
+        statusText.innerText = "Upload failed: " + err.message;
+      }
+    }
+
+    // Remediation Ticket Creation Gate
+    async function createRemediationTicket(isApproved) {
+      const msgEl = document.getElementById('ticketResultMsg');
+      msgEl.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          },
+          body: JSON.stringify({
+            finding_id: 1,
+            description: "Relocate obstruction pallet from walkway A immediately.",
+            approved: isApproved
+          })
+        });
+
+        const data = await res.json();
+        if (res.status === 200) {
+          msgEl.className = "text-xs font-mono text-emerald-400 pt-2";
+          msgEl.innerHTML = `✅ Ticket ID #${data.ticket_id} created successfully (Status: ${data.status})`;
+        } else if (res.status === 400) {
+          msgEl.className = "text-xs font-mono text-amber-400 pt-2";
+          msgEl.innerHTML = `🛡️ Approval Gate Held: ${data.error.message}`;
+        } else if (res.status === 403) {
+          msgEl.className = "text-xs font-mono text-red-400 pt-2";
+          msgEl.innerHTML = `🚫 Forbidden: Role '${currentUser.role}' is not authorized to create tickets. Manager role required.`;
+        }
+      } catch (e) {
+        msgEl.className = "text-xs font-mono text-red-400 pt-2";
+        msgEl.innerText = "Error: " + e.message;
+      }
+    }
+
+    // Export PDF Report
+    async function exportCurrentReport() {
+      const inspId = document.getElementById('inspectionSelector').value || 1;
+      try {
+        const res = await fetch(`/reports/${inspId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          },
+          body: JSON.stringify({ format: 'pdf' })
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.open(data.url, '_blank');
+        } else {
+          alert("Report generation response: " + JSON.stringify(data));
+        }
+      } catch (e) {
+        alert("Export error: " + e.message);
+      }
+    }
+
+    // Review Queue
+    async function fetchReviewQueue() {
+      try {
+        const res = await fetch('/review', {
+          headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+        const items = await res.json();
+        const container = document.getElementById('reviewItemsContainer');
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+          container.innerHTML = `<div class="p-8 text-center text-slate-400 bg-slate-800 rounded-xl border border-slate-700">No items pending review! All document extractions verified.</div>`;
+          return;
+        }
+
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.className = "bg-slate-800 border border-slate-700 rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4";
+          card.innerHTML = `
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">LOW CONFIDENCE (${(item.confidence * 100).toFixed(0)}%)</span>
+                <span class="text-xs text-slate-400 font-mono">Field: <b>${item.field_name}</b></span>
+              </div>
+              <div class="text-sm font-semibold text-white">Proposed Value: <span class="text-amber-400 font-mono">${item.proposed_value}</span></div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <input type="text" id="correctInput_${item.id}" value="${item.proposed_value}" class="bg-slate-900 border border-slate-600 rounded px-2.5 py-1 text-xs text-white">
+              <button onclick="submitReviewAction(${item.id}, 'accept')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition">Approve</button>
+              <button onclick="submitReviewAction(${item.id}, 'correct')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition">Correct</button>
+              <button onclick="submitReviewAction(${item.id}, 'reject')" class="bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded transition">Reject</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        console.error("Review fetch error:", e);
+      }
+    }
+
+    async function submitReviewAction(id, action) {
+      const correctedVal = document.getElementById(`correctInput_${id}`)?.value;
+      try {
+        await fetch(`/review/${id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          },
+          body: JSON.stringify({ action: action, corrected_value: correctedVal })
+        });
+        fetchReviewQueue();
+        fetchDashboardMetrics();
+      } catch (e) {
+        console.error("Action error:", e);
+      }
+    }
+
+    // Agent Chat
+    function setChatPrompt(prompt) {
+      document.getElementById('chatInput').value = prompt;
+    }
+
+    async function attachSamplePhotoAndAsk() {
+      await attachRawPhoto('warehouse_scene_walkway_blocked.jpg', "Evaluate this warehouse photograph against our company safety policy. Is there any violation?");
+    }
+
+    async function attachRawPhoto(imageName, promptText) {
+      try {
+        const res = await fetch(`/data/images/${imageName}`);
+        const blob = await res.blob();
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          attachedImgBase64 = e.target.result.split(',')[1];
+          const pill = document.getElementById('attachedImgPill');
+          if (pill) {
+            pill.innerHTML = `<i class="fa-solid fa-image"></i> ${imageName.slice(0, 18)}... <button type="button" onclick="clearAttachedImg()" class="text-xs hover:text-white ml-1">&times;</button>`;
+            pill.classList.remove('hidden');
+          }
+          const chatInput = document.getElementById('chatInput');
+          if (chatInput) {
+            chatInput.value = promptText;
+            chatInput.focus();
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        console.error('Error attaching raw photo:', err);
+      }
+    }
+
+    function handleChatImgSelected(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          attachedImgBase64 = e.target.result.split(',')[1];
+          document.getElementById('attachedImgPill').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function clearAttachedImg() {
+      attachedImgBase64 = null;
+      document.getElementById('chatImgInput').value = '';
+      document.getElementById('attachedImgPill').classList.add('hidden');
+    }
+
+    async function handleSendChat(event) {
+      event.preventDefault();
+      const input = document.getElementById('chatInput');
+      const question = input.value.trim();
+      if (!question) return;
+
+      input.value = '';
+      const chatMessages = document.getElementById('chatMessages');
+
+      // User Message Bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = "flex items-start justify-end space-x-3";
+      userBubble.innerHTML = `
+        <div class="bg-blue-600 rounded-xl p-3 text-sm text-white max-w-xl">
+          ${attachedImgBase64 ? '<div class="text-xs bg-blue-700/60 p-1 rounded mb-1.5 italic"><i class="fa-solid fa-paperclip mr-1"></i> Attached Real-World Warehouse Photo</div>' : ''}
+          ${question}
+        </div>
+      `;
+      chatMessages.appendChild(userBubble);
+
+      // Agent Streaming Bubble
+      const agentBubble = document.createElement('div');
+      agentBubble.className = "flex items-start space-x-3";
+      const bubbleId = "agent_ans_" + Date.now();
+      const traceId = "agent_trace_" + Date.now();
+
+      agentBubble.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="bg-slate-700/60 border border-slate-600/70 rounded-xl p-3 text-sm text-slate-200 max-w-2xl space-y-2">
+          <div id="${bubbleId}" class="whitespace-pre-line">Reasoning across policies and vision models...</div>
+          <div id="${traceId}" class="hidden pt-2 border-t border-slate-600 text-[11px] font-mono text-slate-400 space-y-1"></div>
+        </div>
+      `;
+      chatMessages.appendChild(agentBubble);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      const payload = {
+        question: question,
+        image_base64: attachedImgBase64,
+        session_id: "web_session_01"
+      };
+      clearAttachedImg();
+
+      // Read SSE stream
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullAnswer = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const textChunk = decoder.decode(value);
+          const lines = textChunk.split("\n\n");
+
+          for (const line of lines) {
+            if (line.startsWith("event: token")) {
+              const data = JSON.parse(line.replace("event: token\ndata: ", ""));
+              fullAnswer += data.token;
+              document.getElementById(bubbleId).innerText = fullAnswer;
+            } else if (line.startsWith("event: citation")) {
+              const citations = JSON.parse(line.replace("event: citation\ndata: ", ""));
+              if (citations && citations.length > 0) {
+                const citHtml = citations.map(c => `<span class="inline-block mt-2 px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50 text-[11px] font-mono"><i class="fa-solid fa-bookmark mr-1"></i> ${c.clause} (Page ${c.page})</span>`).join(' ');
+                document.getElementById(bubbleId).innerHTML = fullAnswer + "<br>" + citHtml;
+              }
+            } else if (line.startsWith("event: trace")) {
+              const trace = JSON.parse(line.replace("event: trace\ndata: ", ""));
+              const traceEl = document.getElementById(traceId);
+              traceEl.classList.remove('hidden');
+              traceEl.innerHTML = `
+                <div class="text-blue-400 font-semibold flex items-center justify-between">
+                  <span><i class="fa-solid fa-code-fork mr-1"></i> ReAct Agent Trace (Run #${trace.run_id})</span>
+                  <span>${trace.latency_ms}ms | $${trace.cost}</span>
+                </div>
+                <div>Route: <b class="text-white">${trace.route}</b> | Tools Invoked: <b class="text-white">${trace.tools_count}</b> | Tokens: <b class="text-white">${trace.tokens}</b></div>
+              `;
+            }
+          }
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      } catch (err) {
+        console.error("Chat error:", err);
+      }
+    }
+
+    // Initial load
+    fetchDashboardMetrics();
+  </script>
+</body>
+</html>

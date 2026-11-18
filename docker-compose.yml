@@ -1,0 +1,42 @@
+services:
+  # Primary PostgreSQL Relational Database (or Neon in Cloud)
+  db:
+    image: postgres:16-alpine
+    container_name: sitesense-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: sitesense
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # SiteSense API Gateway, Computer Vision & Agent Services
+  api:
+    build: .
+    container_name: sitesense-api
+    restart: always
+    environment:
+      - APP_NAME=SiteSense
+      - APP_ENV=production
+      - DEBUG=False
+      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/sitesense
+      - DATABASE_FALLBACK_SQLITE=False
+      - STORAGE_DIR=/app/storage
+    ports:
+      - "8000:8000"
+    volumes:
+      - sitesense-storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  sitesense-storage:

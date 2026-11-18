@@ -1,0 +1,69 @@
+{
+  "description": "Golden Evaluation Dataset for Agent Query Routing and Multi-Tool Orchestration.",
+  "version": "1.0",
+  "test_cases": [
+    {
+      "id": "agent_01",
+      "question": "What objects were detected at Site 7 during yesterday's inspection?",
+      "expected_route": "MEDIA_FINDINGS",
+      "expected_tools": ["analyse_media"]
+    },
+    {
+      "id": "agent_02",
+      "question": "Show me the annotated visual evidence for the failed walkway clearance rule at Site 7.",
+      "expected_route": "MEDIA_FINDINGS",
+      "expected_tools": ["analyse_media"]
+    },
+    {
+      "id": "agent_03",
+      "question": "What does our safety policy say about stacking wooden pallets on the warehouse floor?",
+      "expected_route": "POLICY_DOCS",
+      "expected_tools": ["search_policies"]
+    },
+    {
+      "id": "agent_04",
+      "question": "Under what conditions is a certified safety helmet mandatory according to the handbook?",
+      "expected_route": "POLICY_DOCS",
+      "expected_tools": ["search_policies"]
+    },
+    {
+      "id": "agent_05",
+      "question": "How many total sites failed any compliance rule this month, and which rule failed most frequently?",
+      "expected_route": "STRUCTURED_DATA",
+      "expected_tools": ["query_database"]
+    },
+    {
+      "id": "agent_06",
+      "question": "Give me a breakdown of all inspections conducted across our warehouses grouped by status.",
+      "expected_route": "STRUCTURED_DATA",
+      "expected_tools": ["query_database"]
+    },
+    {
+      "id": "agent_07",
+      "question": "Is this pallet arrangement shown in the attached picture compliant with our storage regulations?",
+      "has_image": true,
+      "expected_route": "MULTIMODAL_IMAGE",
+      "expected_tools": ["analyse_media", "search_policies"]
+    },
+    {
+      "id": "agent_08",
+      "question": "Look at this photograph of our loading bay and tell me if the workers are wearing proper PPE under policy.",
+      "has_image": true,
+      "expected_route": "MULTIMODAL_IMAGE",
+      "expected_tools": ["analyse_media", "search_policies"]
+    },
+    {
+      "id": "agent_09",
+      "question": "Did Site 7 pass the walkway clearance rule this week, and cite the governing policy clause alongside the visual evidence.",
+      "expected_route": "HYBRID",
+      "expected_tools": ["search_policies", "analyse_media"]
+    },
+    {
+      "id": "agent_10",
+      "question": "Generate an official PDF inspection report for inspection ID 1.",
+      "expected_route": "MEDIA_FINDINGS",
+      "expected_tools": ["generate_report"]
+    }
+  ]
+}
+

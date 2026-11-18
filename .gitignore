@@ -1,0 +1,49 @@
+# Environments and Virtualenv
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment variables & secrets
+.env
+*.local
+*.secret
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Dynamic runtime storage artifacts
+storage/uploads/*
+storage/annotated/*
+storage/reports/*
+!storage/uploads/.gitkeep
+!storage/annotated/.gitkeep
+!storage/reports/.gitkeep
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE and Editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini

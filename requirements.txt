@@ -1,0 +1,34 @@
+# Core Web & API Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+pydantic-settings>=2.4.0
+python-multipart>=0.0.9
+
+# Database & ORM (PostgreSQL & Neon compatible)
+sqlalchemy>=2.0.30
+psycopg2-binary>=2.9.9
+alembic>=1.13.0
+
+# Security & Authentication
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0
+
+# Multimodal & Vision Processing
+torch>=2.0.0
+transformers>=4.40.0
+sentence-transformers>=3.0.0
+pillow>=10.0.0
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+
+# Document & PDF Intelligence
+pypdf>=4.0.0
+pdfplumber>=0.11.0
+reportlab>=4.0.0
+
+# Utilities & Networking
+httpx>=0.27.0
+python-dotenv>=1.0.1
+

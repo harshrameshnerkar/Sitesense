@@ -1,0 +1,43 @@
+{
+  "description": "SiteSense Golden Vision Evaluation Dataset covering safety equipment, hazards, and obstructions.",
+  "version": "1.0",
+  "classes": [
+    "fire_extinguisher",
+    "safety_helmet",
+    "pallet",
+    "spill",
+    "blocked_exit",
+    "person"
+  ],
+  "guidelines": "Bounding boxes are strictly in absolute pixel coordinates [x_min, y_min, x_max, y_max]. Occluded objects >50% visible must be annotated.",
+  "test_samples": [
+    {
+      "image_file": "data/images/warehouse_scene_walkway_blocked.jpg",
+      "width": 1280,
+      "height": 720,
+      "ground_truth_detections": [
+        {
+          "class_name": "fire_extinguisher",
+          "bbox": [80, 160, 140, 280],
+          "zone": "zone_wall_south"
+        },
+        {
+          "class_name": "pallet",
+          "bbox": [280, 480, 440, 640],
+          "zone": "walkway_a"
+        },
+        {
+          "class_name": "safety_helmet",
+          "bbox": [880, 240, 940, 300],
+          "zone": "loading_bay_4"
+        },
+        {
+          "class_name": "person",
+          "bbox": [860, 240, 960, 520],
+          "zone": "loading_bay_4"
+        }
+      ]
+    }
+  ]
+}
+
