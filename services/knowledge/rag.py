@@ -85,7 +85,7 @@ class PolicyKnowledgeEngine:
         if not self.chunks:
             self._build_fallback_chunks()
 
-        # Ingest 20 Company Policies & 10 Safety Handbooks
+        # Ingest 20 Company Policies & 10 Safety Handbooks (Markdown and PDF documents)
         from pathlib import Path
         for sub_dir in ["company_policies", "safety_handbooks"]:
             p_dir = Path("data/policies") / sub_dir
@@ -109,6 +109,31 @@ class PolicyKnowledgeEngine:
                         )
                     except Exception:
                         pass
+
+                # Also ingest PDF files directly (e.g. ABC Company Warehouse WHP and SHB suites)
+                for pdf_file in p_dir.glob("*.pdf"):
+                    if pdf_file.name.startswith("WHP-") or pdf_file.name.startswith("SHB-"):
+                        try:
+                            from pypdf import PdfReader
+                            reader = PdfReader(str(pdf_file))
+                            doc_title = pdf_file.stem.replace("_", " ")
+                            doc_id = pdf_file.stem.split("_")[0]
+                            for page_idx, page in enumerate(reader.pages, 1):
+                                text = (page.extract_text() or "").strip()
+                                if not text:
+                                    continue
+                                header = f"{doc_id}: {doc_title} (Page {page_idx})"
+                                self.chunks.append(
+                                    PolicyChunk(
+                                        text=f"{header}\n{text}",
+                                        source_file=pdf_file.name,
+                                        page=page_idx,
+                                        clause=header,
+                                        section=sub_dir.replace("_", " ").title()
+                                    )
+                                )
+                        except Exception:
+                            pass
 
     def _build_fallback_chunks(self):
         clauses = [

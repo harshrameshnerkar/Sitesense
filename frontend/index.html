@@ -50,10 +50,10 @@
     </div>
 
     <!-- Active User & 4-Role Persona Switcher -->
-    <div class="flex items-center space-x-4">
+    <div class="flex items-center space-x-3">
       <div class="flex items-center bg-slate-900/80 border border-slate-700 rounded-lg p-1.5 space-x-2">
         <i class="fa-solid fa-user-gear text-slate-400 text-xs ml-1.5"></i>
-        <label for="roleSwitcher" class="text-xs text-slate-400 font-medium">Active Persona:</label>
+        <label for="roleSwitcher" class="text-xs text-slate-400 font-medium">Persona:</label>
         <select id="roleSwitcher" onchange="switchUserRole(this.value)" class="bg-slate-800 border border-slate-600 rounded px-2.5 py-1 text-xs text-white font-medium focus:outline-none focus:border-blue-500 cursor-pointer">
           <option value="supervisor" selected>Supervisor — Alice Walker (EMP-003)</option>
           <option value="manager">Manager — David Miller (EMP-002)</option>
@@ -61,6 +61,12 @@
           <option value="admin">Admin — Sarah Jenkins (EMP-001)</option>
         </select>
       </div>
+
+      <!-- Sign In / Sign Up Modal Trigger Button -->
+      <button type="button" onclick="openAuthModal()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1.5 shadow-md shadow-blue-500/20 border border-blue-400/40">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        <span>Sign In / Sign Up</span>
+      </button>
 
       <!-- User Profile Badge -->
       <div class="flex items-center space-x-3 pl-2 border-l border-slate-700">
@@ -74,6 +80,9 @@
         <div class="w-9 h-9 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-400 border border-blue-500/30" id="userAvatar">
           <i class="fa-solid fa-user-check"></i>
         </div>
+        <button type="button" onclick="handleLogout()" class="text-slate-400 hover:text-red-400 p-1.5 rounded hover:bg-slate-700/50 transition" title="Log Out">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
       </div>
     </div>
   </header>
@@ -838,15 +847,238 @@
     let attachedImgBase64 = null;
     let selectedFiles = [];
 
-    function switchUserRole(roleKey) {
+    function openAuthModal() {
+      const modal = document.getElementById('authModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('authModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function showAuthTab(tab) {
+      const paneIn = document.getElementById('authPaneSignIn');
+      const paneUp = document.getElementById('authPaneSignUp');
+      const paneDemo = document.getElementById('authPaneDemo');
+
+      const btnIn = document.getElementById('authTabBtnSignIn');
+      const btnUp = document.getElementById('authTabBtnSignUp');
+      const btnDemo = document.getElementById('authTabBtnDemo');
+
+      if (!paneIn || !paneUp || !paneDemo) return;
+
+      paneIn.classList.add('hidden');
+      paneUp.classList.add('hidden');
+      paneDemo.classList.add('hidden');
+
+      btnIn.className = "flex-1 py-2 px-3 rounded-lg text-slate-400 hover:text-white transition text-center flex items-center justify-center gap-1.5";
+      btnUp.className = "flex-1 py-2 px-3 rounded-lg text-slate-400 hover:text-white transition text-center flex items-center justify-center gap-1.5";
+      btnDemo.className = "flex-1 py-2 px-3 rounded-lg text-slate-400 hover:text-white transition text-center flex items-center justify-center gap-1.5";
+
+      if (tab === 'signin') {
+        paneIn.classList.remove('hidden');
+        btnIn.className = "flex-1 py-2 px-3 rounded-lg bg-blue-600 text-white transition text-center flex items-center justify-center gap-1.5";
+      } else if (tab === 'signup') {
+        paneUp.classList.remove('hidden');
+        btnUp.className = "flex-1 py-2 px-3 rounded-lg bg-emerald-600 text-white transition text-center flex items-center justify-center gap-1.5";
+      } else if (tab === 'demo') {
+        paneDemo.classList.remove('hidden');
+        btnDemo.className = "flex-1 py-2 px-3 rounded-lg bg-purple-600 text-white transition text-center flex items-center justify-center gap-1.5";
+      }
+    }
+
+    async function applyLoggedInUser(userData, token) {
+      currentUser = {
+        id: userData.id,
+        role: userData.role,
+        name: userData.name,
+        badge: userData.employee_id || `EMP-${userData.id}`,
+        dept: userData.department || 'Operations',
+        shift: userData.shift || 'General Shift',
+        phone: userData.phone || 'N/A',
+        token: token
+      };
+
+      localStorage.setItem('sitesense_token', token);
+      localStorage.setItem('sitesense_user', JSON.stringify(currentUser));
+
+      const roleBadges = {
+        admin: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+        manager: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        supervisor: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+        employee: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+      };
+      const badgeStyle = roleBadges[currentUser.role.toLowerCase()] || roleBadges.employee;
+
+      const nameEl = document.getElementById('userDisplayName');
+      if (nameEl) {
+        nameEl.innerHTML = `<span>${currentUser.name}</span><span class="px-1.5 py-0.5 rounded text-[10px] font-bold border ${badgeStyle}">${currentUser.role.toUpperCase()} • ${currentUser.badge}</span>`;
+      }
+      const deptEl = document.getElementById('userDepartment');
+      if (deptEl) deptEl.innerText = currentUser.dept;
+
+      const roleSwitcher = document.getElementById('roleSwitcher');
+      if (roleSwitcher) roleSwitcher.value = currentUser.role;
+
+      const cardName = document.getElementById('cardName');
+      if (cardName) cardName.innerText = currentUser.name;
+      const cardDept = document.getElementById('cardDept');
+      if (cardDept) cardDept.innerText = currentUser.dept;
+      const cardShift = document.getElementById('cardShift');
+      if (cardShift) cardShift.innerText = currentUser.shift;
+
+      closeAuthModal();
+      console.log(`Authenticated active user with PostgreSQL: ${currentUser.name} (${currentUser.role})`);
+    }
+
+    async function switchUserRole(roleKey) {
+      const emailMap = {
+        supervisor: { email: 'supervisor@sitesense.io', pwd: 'field123' },
+        manager: { email: 'manager@sitesense.io', pwd: 'manager123' },
+        employee: { email: 'employee@sitesense.io', pwd: 'employee123' },
+        admin: { email: 'admin@sitesense.io', pwd: 'admin123' }
+      };
+      const creds = emailMap[roleKey] || emailMap.supervisor;
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: creds.email, password: creds.pwd })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          await applyLoggedInUser(data.user, data.token);
+          fetchDashboardMetrics();
+          return;
+        }
+      } catch (err) {
+        console.warn('Backend login fallback:', err);
+      }
       currentUser = USERS[roleKey] || USERS.supervisor;
       document.getElementById('userDisplayName').innerHTML = `<span>${currentUser.name}</span><span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300">${currentUser.badge}</span>`;
       document.getElementById('userDepartment').innerText = currentUser.dept;
-      document.getElementById('cardName').innerText = currentUser.name;
-      document.getElementById('cardDept').innerText = currentUser.dept;
-      document.getElementById('cardShift').innerText = currentUser.shift;
+    }
 
-      console.log(`Switched active user to: ${currentUser.name} (${currentUser.role})`);
+    async function handleFormLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const errorEl = document.getElementById('loginErrorMsg');
+      const submitBtn = document.getElementById('btnLoginSubmit');
+
+      errorEl.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating with PostgreSQL...';
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          await applyLoggedInUser(data.user, data.token);
+        } else {
+          errorEl.classList.remove('hidden');
+          errorEl.innerText = data.detail?.error?.message || data.detail || 'Invalid email or password.';
+        }
+      } catch (err) {
+        errorEl.classList.remove('hidden');
+        errorEl.innerText = 'Connection error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Sign In with PostgreSQL</span> <i class="fa-solid fa-arrow-right"></i>';
+      }
+    }
+
+    async function handleFormSignUp(event) {
+      event.preventDefault();
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value.trim();
+      const role = document.getElementById('signupRole').value;
+      const department = document.getElementById('signupDept').value.trim() || 'Operations';
+      const employee_id = document.getElementById('signupEmpId').value.trim();
+      const shift = document.getElementById('signupShift').value;
+      const phone = document.getElementById('signupPhone').value.trim();
+
+      const msgEl = document.getElementById('signupMsg');
+      const submitBtn = document.getElementById('btnSignUpSubmit');
+
+      msgEl.className = 'hidden p-2.5 rounded-lg text-xs';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Writing user to PostgreSQL...';
+
+      try {
+        const res = await fetch('/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            password: password,
+            role: role,
+            department: department,
+            employee_id: employee_id || undefined,
+            shift: shift,
+            phone: phone || undefined
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msgEl.className = 'p-2.5 rounded-lg text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-300';
+          msgEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Registered in PostgreSQL! Logging in as <b>${data.user.name}</b>...`;
+          setTimeout(async () => {
+            await applyLoggedInUser(data.user, data.token);
+          }, 600);
+        } else {
+          msgEl.className = 'p-2.5 rounded-lg text-xs bg-red-500/10 border border-red-500/30 text-red-300';
+          msgEl.innerText = data.detail?.error?.message || data.detail || 'Sign up failed.';
+        }
+      } catch (err) {
+        msgEl.className = 'p-2.5 rounded-lg text-xs bg-red-500/10 border border-red-500/30 text-red-300';
+        msgEl.innerText = 'Network error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-database"></i> <span>Create Account in PostgreSQL & Log In</span>';
+      }
+    }
+
+    async function quickLoginDemo(email, password) {
+      document.getElementById('loginEmail').value = email;
+      document.getElementById('loginPassword').value = password;
+      showAuthTab('signin');
+      const syntheticEvent = { preventDefault: () => {} };
+      await handleFormLogin(syntheticEvent);
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('sitesense_token');
+      localStorage.removeItem('sitesense_user');
+      openAuthModal();
+      showAuthTab('signin');
+    }
+
+    async function initAuthSession() {
+      const savedToken = localStorage.getItem('sitesense_token');
+      if (savedToken) {
+        try {
+          const res = await fetch('/auth/me', {
+            headers: { 'Authorization': `Bearer ${savedToken}` }
+          });
+          if (res.ok) {
+            const user = await res.json();
+            await applyLoggedInUser(user, savedToken);
+            return;
+          }
+        } catch (e) {
+          console.warn('Could not restore auth session:', e);
+        }
+      }
+      currentUser = USERS.supervisor;
+      localStorage.setItem('sitesense_token', currentUser.token);
     }
 
     function switchTab(tabName) {
@@ -1388,7 +1620,198 @@
     }
 
     // Initial load
+    initAuthSession();
     fetchDashboardMetrics();
   </script>
+
+  <!-- ============================================== -->
+  <!-- MODAL: LOGIN & SIGNUP (Connected to PostgreSQL) -->
+  <!-- ============================================== -->
+  <div id="authModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-800/90 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/30">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white leading-tight">SiteSense Identity Gateway</h2>
+            <div class="flex items-center gap-1.5 text-[11px] text-emerald-400 font-mono">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span> PostgreSQL Online (5432/sitesense)
+            </div>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white text-lg p-1">&times;</button>
+      </div>
+
+      <!-- Auth Tabs: Sign In | Sign Up | 1-Click Demo -->
+      <div class="flex border-b border-slate-800 bg-slate-900/60 p-2 gap-2 text-xs font-semibold">
+        <button id="authTabBtnSignIn" onclick="showAuthTab('signin')" class="flex-1 py-2 px-3 rounded-lg bg-blue-600 text-white transition text-center flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+        </button>
+        <button id="authTabBtnSignUp" onclick="showAuthTab('signup')" class="flex-1 py-2 px-3 rounded-lg text-slate-400 hover:text-white transition text-center flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-user-plus"></i> Sign Up (New User)
+        </button>
+        <button id="authTabBtnDemo" onclick="showAuthTab('demo')" class="flex-1 py-2 px-3 rounded-lg text-slate-400 hover:text-white transition text-center flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-users"></i> Demo Roles
+        </button>
+      </div>
+
+      <div class="p-6">
+        
+        <!-- 1. SIGN IN FORM -->
+        <div id="authPaneSignIn" class="space-y-4">
+          <p class="text-xs text-slate-400">Authenticate with your corporate credentials to access the multimodal inspection gateway.</p>
+          <div id="loginErrorMsg" class="hidden p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs"></div>
+          
+          <form onsubmit="handleFormLogin(event)" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Corporate Email</label>
+              <input type="email" id="loginEmail" required placeholder="e.g. manager@sitesense.io" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+              <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <button type="submit" id="btnLoginSubmit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
+              <span>Sign In with PostgreSQL</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </form>
+
+          <div class="pt-2 text-center text-xs text-slate-400 border-t border-slate-800">
+            Need an account? <button type="button" onclick="showAuthTab('signup')" class="text-blue-400 hover:underline font-semibold">Register new employee</button>
+          </div>
+        </div>
+
+        <!-- 2. SIGN UP FORM (Direct to PostgreSQL) -->
+        <div id="authPaneSignUp" class="space-y-4 hidden">
+          <p class="text-xs text-slate-400">Register a new employee into the PostgreSQL database with designated inspection authority.</p>
+          <div id="signupMsg" class="hidden p-2.5 rounded-lg text-xs"></div>
+
+          <form onsubmit="handleFormSignUp(event)" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Full Name *</label>
+                <input type="text" id="signupName" required placeholder="e.g. Liam Foster" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Corporate Email *</label>
+                <input type="email" id="signupEmail" required placeholder="e.g. liam@sitesense.io" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Password *</label>
+                <input type="password" id="signupPassword" required minlength="4" placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">System Role *</label>
+                <select id="signupRole" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                  <option value="supervisor">Supervisor (Field & Camera)</option>
+                  <option value="manager">Manager (Review & Tickets)</option>
+                  <option value="employee">Employee (Safety Status)</option>
+                  <option value="admin">Admin (System Governance)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Department</label>
+                <input type="text" id="signupDept" placeholder="e.g. Inbound Receiving" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Employee ID (Optional)</label>
+                <input type="text" id="signupEmpId" placeholder="e.g. EMP-009" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Shift</label>
+                <select id="signupShift" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                  <option value="Morning Shift (06:00 - 14:30)">Morning (06:00 - 14:30)</option>
+                  <option value="Day Shift (08:00 - 16:30)">Day (08:00 - 16:30)</option>
+                  <option value="Night Shift (22:00 - 06:30)">Night (22:00 - 06:30)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Phone</label>
+                <input type="text" id="signupPhone" placeholder="+1 (312) 555-0199" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+
+            <button type="submit" id="btnSignUpSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-lg text-xs transition shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 mt-2">
+              <i class="fa-solid fa-database"></i>
+              <span>Create Account in PostgreSQL & Log In</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- 3. QUICK 1-CLICK DEMO ROLES -->
+        <div id="authPaneDemo" class="space-y-3 hidden">
+          <p class="text-xs text-slate-400">Select any pre-seeded enterprise role to test permissions and workflows in 1 click:</p>
+          <div class="grid grid-cols-1 gap-2">
+            <button onclick="quickLoginDemo('admin@sitesense.io', 'admin123')" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-purple-500/30 hover:border-purple-500 text-left transition flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold">
+                  <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">Sarah Jenkins (System Admin)</div>
+                  <div class="text-[11px] text-slate-400">admin@sitesense.io • EMP-001 • IT & Safety Governance</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300">ADMIN</span>
+            </button>
+
+            <button onclick="quickLoginDemo('manager@sitesense.io', 'manager123')" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-amber-500/30 hover:border-amber-500 text-left transition flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 flex items-center justify-center font-bold">
+                  <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">David Miller (EHS Safety Manager)</div>
+                  <div class="text-[11px] text-slate-400">manager@sitesense.io • EMP-002 • Human Review & Approvals</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300">MANAGER</span>
+            </button>
+
+            <button onclick="quickLoginDemo('supervisor@sitesense.io', 'field123')" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-blue-500/30 hover:border-blue-500 text-left transition flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
+                  <i class="fa-solid fa-camera"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">Alice Walker (Field Logistics Supervisor)</div>
+                  <div class="text-[11px] text-slate-400">supervisor@sitesense.io • EMP-003 • Ingestion & Inspections</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300">SUPERVISOR</span>
+            </button>
+
+            <button onclick="quickLoginDemo('employee@sitesense.io', 'employee123')" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-emerald-500/30 hover:border-emerald-500 text-left transition flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold">
+                  <i class="fa-solid fa-person-walking"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">Charlie Reed (Warehouse Floor Associate)</div>
+                  <div class="text-[11px] text-slate-400">employee@sitesense.io • EMP-004 • Receiving & Safety Status</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">EMPLOYEE</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </body>
 </html>

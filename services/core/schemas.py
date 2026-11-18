@@ -29,6 +29,17 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SignUpRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=255)
+    email: EmailStr
+    password: str = Field(..., min_length=4)
+    role: str = Field(default="employee", description="admin, manager, supervisor, employee")
+    department: Optional[str] = None
+    employee_id: Optional[str] = None
+    shift: Optional[str] = None
+    phone: Optional[str] = None
+
+
 class UserSummary(BaseModel):
     id: int
     employee_id: Optional[str] = None

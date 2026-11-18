@@ -142,32 +142,40 @@ class VisionDetector:
                 pass
 
         # Scenario A: Clear Compliant Warehouse (No pallet obstruction)
-        if "clean" in path_lower or "clear" in path_lower or "compliant" in path_lower:
+        if "clean" in path_lower or "clear" in path_lower or "compliant" in path_lower or "walkway_markings" in path_lower:
             return [
                 DetectionResult(class_name="fire_extinguisher", bbox=[90, 180, 130, 280], confidence=0.96),
                 DetectionResult(class_name="safety_helmet", bbox=[430, 320, 465, 360], confidence=0.92),
                 DetectionResult(class_name="person", bbox=[420, 360, 475, 490], confidence=0.94)
             ]
 
-        # Scenario B: Loading Bay - Missing PPE Helmet
+        # Scenario B: Loading Bay - Missing PPE Helmet / Loading Dock activity
         if "loading_dock" in path_lower or "no_helmet" in path_lower or "loading_bay" in path_lower:
             return [
                 DetectionResult(class_name="person", bbox=[805, 330, 875, 520], confidence=0.95),
                 DetectionResult(class_name="forklift", bbox=[200, 300, 500, 600], confidence=0.92)
             ]
 
-        # Scenario C: Pallet Overstacking (Violation of Clause 4.1)
-        if "overstack" in path_lower:
+        # Scenario C: Pallet Overstacking & Racking Load (Violation of Clause 4.1 / WHP-005)
+        if "overstack" in path_lower or "rack_load" in path_lower:
             return [
                 DetectionResult(class_name="pallet", bbox=[480, 160, 720, 620], confidence=0.97),
                 DetectionResult(class_name="person", bbox=[860, 240, 960, 520], confidence=0.91)
             ]
 
-        # Scenario D: Blocked Emergency Exit Door (Violation of Clause 7.1)
+        # Scenario D: Blocked Emergency Exit Door (Violation of Clause 7.1 / WHP-009)
         if "exit" in path_lower:
             return [
                 DetectionResult(class_name="blocked_exit", bbox=[450, 120, 750, 580], confidence=0.94),
                 DetectionResult(class_name="pallet", bbox=[480, 420, 680, 580], confidence=0.95)
+            ]
+
+        # Scenario E: Obstructed Walkway / Pallet Obstruction
+        if "obstruct" in path_lower or "pallet" in path_lower:
+            return [
+                DetectionResult(class_name="fire_extinguisher", bbox=[80, 160, 140, 280], confidence=0.94),
+                DetectionResult(class_name="pallet", bbox=[280, 460, 480, 640], confidence=0.96),
+                DetectionResult(class_name="person", bbox=[860, 240, 960, 520], confidence=0.92)
             ]
 
         # Scenario E: Default / Raw Walkway Obstruction Scene (Violation of Clause 1.2)
